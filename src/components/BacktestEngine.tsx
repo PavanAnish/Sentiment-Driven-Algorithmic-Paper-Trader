@@ -12,12 +12,24 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+interface BacktestResponse {
+  dates: string[];
+  ai_portfolio_value: number[];
+  buy_hold_value: number[];
+}
+
+interface BacktestResult {
+  date: string;
+  'AI Sentiment Bot': number;
+  'Buy & Hold': number;
+}
+
 export default function BacktestEngine() {
   const [ticker, setTicker] = useState('AAPL');
   const [startDate, setStartDate] = useState('2023-01-01');
   const [endDate, setEndDate] = useState('2023-12-31');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<BacktestResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const runBacktest = async (e: React.FormEvent) => {
@@ -33,9 +45,13 @@ export default function BacktestEngine() {
         body: JSON.stringify({ ticker, start_date: startDate, end_date: endDate }),
       });
       
-      const data = await res.json();
+      const data: BacktestResponse | { detail?: string } = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail || 'Backtest failed');
+        throw new Error('detail' in data ? data.detail || 'Backtest failed' : 'Backtest failed');
+      }
+
+      if (!('dates' in data && 'ai_portfolio_value' in data && 'buy_hold_value' in data)) {
+        throw new Error('Backtest returned an invalid response');
       }
       
       // Format data for recharts
@@ -46,8 +62,8 @@ export default function BacktestEngine() {
       }));
       
       setResults(formattedData);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Backtest failed');
     } finally {
       setLoading(false);
     }
@@ -136,7 +152,9 @@ export default function BacktestEngine() {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
                 itemStyle={{ fontWeight: 'bold' }}
-                formatter={(value: number) => [`$${value.toLocaleString()}`, undefined]}
+                formatter={(value) => [
+                  `$${Number(value ?? 0).toLocaleString()}`,
+                ]}
               />
               <Legend wrapperStyle={{ paddingTop: '20px' }}/>
               <Line 

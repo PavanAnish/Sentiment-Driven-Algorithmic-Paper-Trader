@@ -27,8 +27,8 @@ export default function ManualTradeOverride({ onTradeComplete }: { onTradeComple
       }
       
       onTradeComplete();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Trade failed');
     } finally {
       setIsLoading(false);
     }

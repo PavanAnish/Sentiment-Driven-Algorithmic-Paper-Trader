@@ -6,8 +6,31 @@ import AIJustificationLog from '@/components/AIJustificationLog';
 import ManualTradeOverride from '@/components/ManualTradeOverride';
 import BacktestEngine from '@/components/BacktestEngine';
 
+interface Portfolio {
+  balance: number;
+  total_portfolio_value: number;
+  positions: Array<{
+    ticker: string;
+    quantity: number;
+    average_price: number;
+    current_price: number;
+    total_value: number;
+    pnl: number;
+  }>;
+  recent_trades: Array<{
+    id: number;
+    ticker: string;
+    order_type: string;
+    quantity: number;
+    price: number;
+    timestamp: string;
+    is_ai_trade: boolean;
+    justification: string | null;
+  }>;
+}
+
 export default function Dashboard() {
-  const [portfolio, setPortfolio] = useState<any>(null);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [triggeringAi, setTriggeringAi] = useState(false);
   const [activeTab, setActiveTab] = useState<'live' | 'backtest'>('live');
@@ -27,9 +50,17 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    fetchPortfolio();
-    const interval = setInterval(fetchPortfolio, 5000);
-    return () => clearInterval(interval);
+    const initialFetch = window.setTimeout(() => {
+      void fetchPortfolio();
+    }, 0);
+    const interval = window.setInterval(() => {
+      void fetchPortfolio();
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(initialFetch);
+      window.clearInterval(interval);
+    };
   }, [fetchPortfolio]);
 
   const triggerAIBot = async () => {
