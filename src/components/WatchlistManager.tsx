@@ -28,11 +28,18 @@ export default function WatchlistManager() {
     if (!ticker) return;
     setLoading(true);
     try {
-      await fetch('/api/watchlist', {
+      const res = await fetch('/api/watchlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker: ticker.toUpperCase() })
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(errorData.detail || "Failed to add ticker. It might be invalid.");
+        return;
+      }
+      
       setTicker('');
       fetchWatchlist();
     } catch (e) {
