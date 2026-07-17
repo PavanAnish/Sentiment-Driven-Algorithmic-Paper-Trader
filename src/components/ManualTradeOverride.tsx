@@ -15,7 +15,7 @@ export default function ManualTradeOverride({ onTradeComplete }: { onTradeComple
     setError(null);
     
     try {
-      const res = await fetch('http://localhost:8000/api/trade/manual', {
+      const res = await fetch('/api/trade/manual', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker, quantity, order_type: orderType }),

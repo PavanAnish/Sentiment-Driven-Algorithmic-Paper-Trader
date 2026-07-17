@@ -32,18 +32,21 @@ interface Portfolio {
 export default function Dashboard() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
+  const [portfolioError, setPortfolioError] = useState<string | null>(null);
   const [triggeringAi, setTriggeringAi] = useState(false);
   const [activeTab, setActiveTab] = useState<'live' | 'backtest'>('live');
 
   const fetchPortfolio = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/portfolio');
-      if (res.ok) {
-        const data = await res.json();
-        setPortfolio(data);
+      const res = await fetch('/api/portfolio');
+      if (!res.ok) {
+        throw new Error(`Portfolio request failed (${res.status})`);
       }
+      const data = await res.json();
+      setPortfolio(data);
+      setPortfolioError(null);
     } catch (err) {
-      console.error('Failed to fetch portfolio', err);
+      setPortfolioError(err instanceof Error ? err.message : 'Unable to connect to the trading API');
     } finally {
       setLoading(false);
     }
@@ -66,10 +69,13 @@ export default function Dashboard() {
   const triggerAIBot = async () => {
     setTriggeringAi(true);
     try {
-      await fetch('http://localhost:8000/api/trigger_ai_bot', { method: 'POST' });
+      const res = await fetch('/api/trigger_ai_bot', { method: 'POST' });
+      if (!res.ok) {
+        throw new Error(`AI trigger failed (${res.status})`);
+      }
       setTimeout(fetchPortfolio, 1000); 
     } catch (err) {
-      console.error('Failed to trigger AI', err);
+      setPortfolioError(err instanceof Error ? err.message : 'Unable to trigger the AI bot');
     } finally {
       setTriggeringAi(false);
     }
@@ -114,6 +120,12 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
+
+      {portfolioError && (
+        <div className="relative z-10 mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 text-sm text-amber-200">
+          Trading API unavailable: {portfolioError}. Start the backend service and refresh this page.
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-800 mb-8 relative z-10">

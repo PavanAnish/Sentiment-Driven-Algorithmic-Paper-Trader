@@ -39,7 +39,7 @@ export default function BacktestEngine() {
     setResults(null);
     
     try {
-      const res = await fetch('http://localhost:8000/api/backtest', {
+      const res = await fetch('/api/backtest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker, start_date: startDate, end_date: endDate }),
