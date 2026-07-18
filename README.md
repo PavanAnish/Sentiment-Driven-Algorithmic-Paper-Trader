@@ -1,4 +1,4 @@
-# Sentiment-Driven Algorithmic Paper Trader 📈🤖
+# SentroTrade 📈
 
 An intelligent, full-stack paper trading platform that executes trades based on real-time and historical market sentiment analysis. The system aggregates sentiment signals (using NLP on news and social media) to algorithmically buy and sell assets, offering users a comprehensive dashboard to monitor portfolio health, track AI decision logic, run backtests, and manually intervene when necessary.
 
